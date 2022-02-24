@@ -22,11 +22,11 @@
  */
 
 
-var fs = require('fs'),
+const fs = require('fs'),
     os = require('os');
 
 
-var EOL = os.EOL;
+const EOL = os.EOL;
 
 /**
  * Get a line from buffer & return it + remaining buffer
@@ -69,7 +69,7 @@ module.exports = function readEachLine(path, encoding, processline) {
         encoding = 'utf8';
     }
 
-    var buf_alloc = function (buf_size) {
+    const buf_alloc = function (buf_size) {
         if (Buffer.alloc) {
             return Buffer.alloc(buf_size, encoding = encoding);
         } else {
@@ -77,14 +77,13 @@ module.exports = function readEachLine(path, encoding, processline) {
         }
     }
 
+    const chunkSize = 64 * 1024; //64KB
+
     var fsize,
         fd,
-        chunkSize = 64 * 1024, //64KB
         bufferSize = chunkSize,
-        remainder,
         curBuffer = buf_alloc(0),
-        readBuffer,
-        numOfLoops;
+        readBuffer;
 
     if (!fs.existsSync(path)) {
         throw new Error("no such file or directory '" + path + "'");
@@ -95,9 +94,9 @@ module.exports = function readEachLine(path, encoding, processline) {
     if (fsize < chunkSize) {
         bufferSize = fsize;
     }
-
-    numOfLoops = Math.floor(fsize / bufferSize);
-    remainder = fsize % bufferSize;
+    const
+        numOfLoops = Math.floor(fsize / bufferSize),
+        remainder = fsize % bufferSize;
 
     fd = fs.openSync(path, 'r');
 
