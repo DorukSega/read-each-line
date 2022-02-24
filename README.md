@@ -1,6 +1,6 @@
 # read-each-line but backwards
 
-Modified version of read-each-line to accodimate backwards reading.
+Modified version of read-each-line to accommodate backwards reading.
 
 Reads file line by line, synchronously, from last line to first - backwards.
 
