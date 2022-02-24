@@ -1,15 +1,13 @@
-# read-each-line
+# read-each-line but backwards
 
-Read file line by line, synchronously.
+Modified version of read-each-line to accodimate backwards reading.
 
-## Install
-
-    npm install read-each-line
+Reads file line by line, synchronously, from last line to first - backwards.
 
 ## Example
 
 ```javascript
-var readEachLine = require('read-each-line')
+var readEachLine = require('read-each-line') //this depens on file name
 
 readEachLine('test.txt', 'utf8', function(line) {
   console.log(line)
@@ -26,10 +24,4 @@ readEachLine('test.txt', function(line) {
 
 ## Credits
 
-Author: [Geza Kovacs](http://github.com/gkovacs)
-
-Based on [readLineSync](https://gist.github.com/Basemm/9700229)
-
-## License
-
-MIT
+Original Author: [Geza Kovacs](http://github.com/gkovacs)

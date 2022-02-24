@@ -1,5 +1,5 @@
 /**
- * Read file line by line, synchronously.
+ * Read file line by line, synchronously, and backwards.
  *
  * Example:
  *
@@ -34,24 +34,23 @@ var EOL = os.EOL;
  * @param {Buffer} buffer
  */
 function getLine(buffer) {
-    var i, line, newBuffer, end;
+    var i, start, end;
 
-    for(i = 0; i < buffer.length; i++) {
-        //detect end of line '\n'
-        if ( buffer[i] === 0x0a) {
+    for (i = buffer.length - 1; i > -1; i--) {
 
-            end = i;
-
-            if ( EOL.length > 1 ) {
-                //account for windows '\r\n'
-                end = i - 1;
+        if (buffer[i] === 0x0a || i === 0) { // if either NL or start of file
+            start = i + 1; //start of line
+            end = EOL.length > 1 ? i - 1 : i; // end of newBuffer, if EOL is CRLF - twice the length - then it goes one more back
+            if (i === 0) { // if start of file
+                start = 0,
+                    end = 0;
             }
-
             return {
-                line: buffer.slice(0, end).toString(),
-                newBuffer: buffer.slice(i + 1)
+                line: buffer.subarray(start, buffer.length).toString(),
+                newBuffer: buffer.subarray(0, end)
             }
         }
+
     }
 
     return null;
@@ -65,17 +64,17 @@ function getLine(buffer) {
  */
 module.exports = function readEachLine(path, encoding, processline) {
 
-    if (typeof(encoding) == 'function') { // default to utf8 if encoding not specified
+    if (typeof (encoding) == 'function') { // default to utf8 if encoding not specified
         processline = encoding;
         encoding = 'utf8';
     }
 
-    var buf_alloc = function(buf_size) {
-      if (Buffer.alloc) {
-        return Buffer.alloc(buf_size, encoding=encoding);
-      } else {
-        return new Buffer(buf_size, encoding=encoding);
-      }
+    var buf_alloc = function (buf_size) {
+        if (Buffer.alloc) {
+            return Buffer.alloc(buf_size, encoding = encoding);
+        } else {
+            return new Buffer(buf_size, encoding = encoding);
+        }
     }
 
     var fsize,
@@ -87,17 +86,17 @@ module.exports = function readEachLine(path, encoding, processline) {
         readBuffer,
         numOfLoops;
 
-    if ( !fs.existsSync( path ) ) {
+    if (!fs.existsSync(path)) {
         throw new Error("no such file or directory '" + path + "'");
     }
 
     fsize = fs.statSync(path).size;
 
-    if ( fsize < chunkSize ) {
+    if (fsize < chunkSize) {
         bufferSize = fsize;
     }
 
-    numOfLoops = Math.floor( fsize / bufferSize );
+    numOfLoops = Math.floor(fsize / bufferSize);
     remainder = fsize % bufferSize;
 
     fd = fs.openSync(path, 'r');
@@ -107,22 +106,22 @@ module.exports = function readEachLine(path, encoding, processline) {
 
         fs.readSync(fd, readBuffer, 0, bufferSize, bufferSize * i);
 
-        curBuffer = Buffer.concat( [curBuffer, readBuffer], curBuffer.length + readBuffer.length );
+        curBuffer = Buffer.concat([curBuffer, readBuffer], curBuffer.length + readBuffer.length);
         var lineObj;
-        while( lineObj = getLine( curBuffer ) ) {
+        while (lineObj = getLine(curBuffer)) {
             curBuffer = lineObj.newBuffer;
             processline(lineObj.line);
         }
     }
 
-    if ( remainder > 0 ) {
+    if (remainder > 0) {
         readBuffer = buf_alloc(remainder);
 
         fs.readSync(fd, readBuffer, 0, remainder, bufferSize * i);
 
-        curBuffer = Buffer.concat( [curBuffer, readBuffer], curBuffer.length + readBuffer.length );
+        curBuffer = Buffer.concat([curBuffer, readBuffer], curBuffer.length + readBuffer.length);
         var lineObj;
-        while( lineObj = getLine( curBuffer ) ) {
+        while (lineObj = getLine(curBuffer)) {
             curBuffer = lineObj.newBuffer;
             processline(lineObj.line);
         }
@@ -130,7 +129,7 @@ module.exports = function readEachLine(path, encoding, processline) {
 
     //return last remainings in the buffer in case
     //it didn't have any more lines
-    if ( curBuffer.length ) {
+    if (curBuffer.length) {
         processline(curBuffer.toString());
     }
 
